@@ -1,7 +1,7 @@
 ---
 layout:	post
 title:	"Welcome to devop!!"
-date:	2026-01-05 20:25:80 +0800
+date:	2026-01-05 20:25:00 +0800
 categories:	jekyll update
 ---
 基于ruby语言搭建的jekyll个人博客系统，采用本地代码编写，通过github存储数据，利用jenkins的自动化CI/CD代码拉取推送，将文章远程推送到到云服务器中上线。
@@ -44,7 +44,6 @@ bundle build #更新Gemfile文件
 bundle exec jekyll serve
 
 ```
-
 
 ```
 # 编辑Gemfile文件得到错误信息少的编译后的本地网站
@@ -127,6 +126,7 @@ yum install podman # yum
 [brew的安装方法](https://docs.brew.sh/Installation)
 
 ### 镜像容器
+
 ```
 # 构建运行镜像
 podman run docker.1ms.run/jenkins/jenkins:lts
@@ -155,6 +155,7 @@ podman push localhost:5000/jenkins-jekyell:v1 Getting image source signatures # 
 podman push --tls-verify=false localhost:5000 jenkins-jekyell:v1 Getting image source signatures # HTTP 访问跳过校验
 curl http://localhost:5000/v2/_catalog # 查看镜像仓库中的镜像 #V1接口已经被废弃（podman/docker）
 ```
+
 ```
 #关于ruby+bundle环境的jenkins容器构建Dockerfile
 FROM docker.1ms.run/jenkins/jenkins:lts
@@ -172,11 +173,14 @@ RUN gem install bundler:4.0.3 --no-document
 USER jenkins
 RUN ruby -v && bundle -v
 ```
+
 ```
 podman build -t jenkins-ruby-bundle:v1 .
 ```
+
 现在已经启动Jenkins,Registry 进入本地Localhost:8080
 先安装一系列插件，构建选择自由式风格，✔访问仓库拉取代码 ✔代码远程转发
+
 ```
 #jinkins服务器公钥私钥配置
 ssh-keygen -t rsa
@@ -193,6 +197,7 @@ chmod 644 ~/.ssh/known_hosts
 chmod 600 ~/.ssh/id_rsa
 chmod 644 ~/.ssh/id_rsa.pub
 ```
+
 ```
 ls -l
 # ==============编译脚本==========
@@ -205,8 +210,10 @@ bundle exec jekyll build --verbose
 echo "＜（＾－＾）＞ jekyll 编译已经完成，静态文件列表如下："
 ls -lh ${WORKSPACE}/_site/
 ```
+
 此时需要考虑将Jenkins服务器上的文件传输到Nignx服务器上/var/www/html/blog
 在容器内做ssh远程传输
+
 ```
 # jenkins容器内部
 keygen -t rsa
@@ -214,6 +221,7 @@ ls -l ~/.ssh/
 ssh-copy-id root@192.168.1.100
 yum install openssh # scp是openssh的原生内置工具
 ```
+
 ```
 # ============推送纯净静态文件给服务器=======
 # 仅推送_site目录下的所有文件，无任何冗余
@@ -225,9 +233,11 @@ ssh root@192.168.100.128 "chmod -R 755 /var/www/html/blog && chown -R nginx:ngin
 
 echo "＜（＾－＾）＞ 部署成功！服务器仅存在纯净静态文件，无任何冗余"
 ```
+
 保存应用，构建Jenkins，更改Jenkins时区，admin-->account-->timezone
 
 ## Nginx服务器
+
 ```
 # 反向代理，Jekyll是静态博客，可以不使用Apache
 server {
