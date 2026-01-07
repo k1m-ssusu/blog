@@ -157,21 +157,54 @@ curl http://localhost:5000/v2/_catalog # 查看镜像仓库中的镜像 #V1接�
 ```
 
 ```
-#关于ruby+bundle环境的jenkins容器构建Dockerfile
+# 关于ruby+bundle环境的jenkins容器构建Dockerfile
+# Dockerdfile 完全锁定阿里云 Trixie 源，并禁用官方源
+# Jenkins LTS 镜像构建（适配Debian 12 Trixie）
 FROM docker.1ms.run/jenkins/jenkins:lts
 USER root
 
-# 直接安装系统源默认的ruby-full（无需指定版本）
-RUN apt-get update -y && \
-    apt-get install -y ruby-full build-essential libssl-dev && \
+# 关键：设置环境变量，强制禁用apt自动更新源、避免交互
+ENV DEBIAN_FRONTEND=noninteractive \
+    APT_LISTCHANGES_FRONTEND=none \
+    GEM_SOURCE=https://gems.ruby-china.com/
+
+# 1. 彻底清空原有源文件，避免残留源干扰
+RUN rm -rf /etc/apt/sources.list /etc/apt/sources.list.d/*
+
+# 2. 写入Debian 12 (Trixie) 阿里云源（仅保留阿里云，无官方源）
+RUN echo "deb http://mirrors.aliyun.com/debian/ trixie main non-free contrib" > /etc/apt/sources.list && \
+    echo "deb-src http://mirrors.aliyun.com/debian/ trixie main non-free contrib" >> /etc/apt/sources.list && \
+    echo "deb http://mirrors.aliyun.com/debian-security/ trixie-security main" >> /etc/apt/sources.list && \
+    echo "deb-src http://mirrors.aliyun.com/debian-security/ trixie-security main" >> /etc/apt/sources.list && \
+    echo "deb http://mirrors.aliyun.com/debian/ trixie-updates main non-free contrib" >> /etc/apt/sources.list && \
+    echo "deb-src http://mirrors.aliyun.com/debian/ trixie-updates main non-free contrib" >> /etc/apt/sources.list
+
+# 3. 配置apt优先使用阿里云源，禁用ipv6（避免解析问题）
+RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 && \
+    echo 'Acquire::http::Timeout "600";' > /etc/apt/apt.conf.d/99timeout && \
+    echo 'Acquire::Retries "5";' > /etc/apt/apt.conf.d/99retries
+
+# 4. 安装依赖（仅用阿里云源，增加--fix-missing修复依赖）
+RUN apt-get update -y --fix-missing && \
+    apt-get install -y --no-install-recommends \
+    ruby-full build-essential libssl-dev curl wget && \
+    # 深度清理缓存，减小镜像
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# 安装Bundler4.0.3
-RUN gem install bundler:4.0.3 --no-document
+# 5. 更换RubyGems国内源，安装Bundler
+RUN gem sources --add $GEM_SOURCE --remove https://rubygems.org/ && \
+    gem install bundler:4.0.3 --no-document && \
+    gem sources -l
 
+# 6. 切回jenkins用户，验证版本
 USER jenkins
 RUN ruby -v && bundle -v
+
+# 恢复默认环境变量
+USER root
+ENV DEBIAN_FRONTEND=newt
+USER jenkins
 ```
 
 ```
