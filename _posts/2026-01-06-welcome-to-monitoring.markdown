@@ -7,6 +7,7 @@ categories: jekyll update
 关于系统监控和日志分析的三个工具：Zabbix、Prometheus、ELK
 
 ## Zabbix
+
 * Zabbix -> Maridb -> Apache -> Nginx -> Agent
 
 ### localhost管理
@@ -268,9 +269,8 @@ http://ip
 敏感密码建议通过 Docker Secrets 或环境变量文件（.env）注入，避免明文
 ```
 
-
-
 ## Prometheus
+
 * Grafana -> Data Sources -> Dashboards -> Import
 
 ### Localhost
@@ -528,6 +528,7 @@ scrape_configs:
 
 ```
 # 配置 node_rule.yml
+{% raw %} # 是为了让 Liquid 引擎完全忽略, markdown 问题
 groups:
 - name: node_alerts
   rules:
@@ -539,6 +540,7 @@ groups:
     annotations:
       summary: "服务器 {{ $labels.instance }} 内存使用率过高"
       description: "内存使用率: {{ $value }}% (阈值: 85%)，持续5分钟以上"
+{% endraw %}
 ```
 
 配置反向代理
@@ -599,6 +601,7 @@ server {
 ```
 
 ### Container
+
 ```#
 docker pull prom/prometheus:v2.53.0
 docker pull grafana/grafana:9.5.17
@@ -798,6 +801,7 @@ docker-compose logs -f
 ```
 
 ## ELK
+
 * Kibana：Stack Management  -> Data views -> Creat data view -> Discover -> Stream
 
 ```
@@ -924,5 +928,3 @@ logging.to_stdout: true
 
 {"log.level":"info","@timestamp":"2026-01-06T16:23:03.135Z","log.logger":"monitoring","log.origin":{"file.name":"log/log.go","file.line":187},"message":"Non-zero metrics in the last 30s","service.name":"filebeat","monitoring":{"metrics":{"beat":{"cgroup":{"cpuacct":{"total":{"ns":18259331}},"memory":{"mem":{"usage":{"bytes":63574016}}}},"cpu":{"system":{"ticks":7020,"time":{"ms":10}},"total":{"ticks":10580,"time":{"ms":10},"value":10580},"user":{"ticks":3560}},"handles":{"limit":{"hard":1048576,"soft":1048576},"open":12},"info":{"ephemeral_id":"0aae5277-e858-46b0-bb2b-f305bd6fb3e4","uptime":{"ms":14670037},"version":"8.10.4"},"memstats":{"gc_next":41719672,"memory_alloc":24475000,"memory_total":943653072,"rss":80916480},"runtime":{"goroutines":36}},"filebeat":{"events":{"active":0,"added":6,"done":6},"harvester":{"open_files":2,"running":2}},"libbeat":{"config":{"module":{"running":0}},"output":{"events":{"acked":6,"active":0,"batches":6,"total":6},"read":{"bytes":2066},"write":{"bytes":5922}},"pipeline":{"clients":2,"events":{"active":0,"published":6,"total":6},"queue":{"acked":6}}},"registrar":{"states":{"current":0}},"system":{"load":{"1":0.02,"15":0.21,"5":0.13,"norm":{"1":0.005,"15":0.0525,"5":0.0325}}}},"ecs.version":"1.6.0"}}
 ```
-
-
