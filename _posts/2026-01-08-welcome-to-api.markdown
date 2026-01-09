@@ -2,9 +2,9 @@
 layout:	post
 title:	"Welcome to API!!!"
 data:	2026-01-08 22:29:20 +0800
-categories: jekyll updata
+categories: jekyll update
 ---
-![API 接口使用预览]({{ site.baseurl }}/assets/images/posts/api-20260108.png)
+![ API 接口使用预览 ]({{ site.baseurl }}/assets/images/posts/Api_20260108.png)
 
 Nginx + Python（后端）+ Maridb + Redis
 
